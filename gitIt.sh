@@ -1,5 +1,7 @@
 #!/bin/bash
-source ./functions/cli_tools.sh
+SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+source "$SCRIPT_DIR/functions/cli_tools.sh"
+source "$SCRIPT_DIR/functions/git_status.sh"
 init_colours
 
 echo -e "${BLUE}" 

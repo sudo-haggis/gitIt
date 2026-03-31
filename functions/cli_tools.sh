@@ -1,8 +1,8 @@
 #!/bin/bash
 #  gitIt CLI Tool
 #  This script provides a command-line interface to manage and print reports of local Git repositories.
-source ./functions/git_status.sh
-
+#source "$(dirname $(pwd))"/git_status.sh
+#source "./git_status.sh"
 
 __init__() {
     ##  Establishes variables for the script  ##
@@ -31,8 +31,8 @@ __init__() {
     if [ -f "$report" ]; then
         rm "$report"
     fi
-    
-##  generates sorted list of repositories          
+
+##  generates sorted list of repositories
     echo "                              *gitting* repositories..."
     ##  searches for .git directories
     find "$SEARCH_DIR" -type d -name ".git" 2>/dev/null | while read -r git_dir; do
@@ -59,7 +59,7 @@ quick_report() {
 ##  prints a quick report of the repositories found
     echo -e "${RED}=========================================================================================${NC}"
     echo "Found $(wc -l "$repo_list" | awk '{print $1}') active repositories:"
-    cat "$report"    
+    cat "$report"
     echo -e "${RED}=========================================================================================${NC}"
 }
 
@@ -67,7 +67,7 @@ generate_status(){
     if [ -f "$repo_list" ]; then
         echo "             Generating git status for all repositories..."
         echo -e "${RED}=========================================================================================${NC}"
-            echo -e "${GREEN}≡≡≡≡≡≡≡≡≡≡≡≡≡≡${NC}" 
+            echo -e "${GREEN}≡≡≡≡≡≡≡≡≡≡≡≡≡≡${NC}"
 
             for repo in $(cat "$repo_list"); do
                 git_status "$repo"
