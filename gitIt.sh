@@ -4,13 +4,13 @@ source "$SCRIPT_DIR/functions/cli_tools.sh"
 source "$SCRIPT_DIR/functions/git_status.sh"
 init_colours
 
-echo -e "${BLUE}" 
+echo -e "${BLUE}"
 cat <<'EOF'
         _ __  __________
   ___ _(_) /_/  _/_  __/
- / _ `/ / __// /  / /   
- \_, /_/\__/___/ /_/    
-/___/                   
+ / _ `/ / __// /  / /
+ \_, /_/\__/___/ /_/
+/___/
 EOF
 echo -e "${NC}"
 
@@ -36,7 +36,7 @@ gitIt() {
         echo "Flags:"
         echo "  -h, --help       Show this help message"
         echo "  --ignore-repo <REGEX pattern>  Ignore repositories matching the provided pattern"
-        echo "                                 This will add the pattern to the ignore.conf file" 
+        echo "                                 This will add the pattern to the ignore.conf file"
         echo "                                 in $HOME/.config/gitit"
         exit 0
         ;;
