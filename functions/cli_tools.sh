@@ -10,7 +10,7 @@ __init__() {
     ##  sets the search directory to the home directory
     # or runs only in testing fake_ directory
     if [ ! $TEST ]; then
-        SEARCH_DIR="$HOME"
+        SEARCH_DIR="$(pwd)"
     fi
 
     ##  sets the ignore list file path
