@@ -30,14 +30,34 @@ git_status_line() {
         fi
     fi
 
+    local branch_summary=""
+    if [ "${SHOW_BRANCHES}" = "true" ]; then
+        branch_summary=" [$(git_branch_summary "$abs_path")]"
+    fi
+
     if [ $((staged + modified)) -eq 0 ]; then
-        echo -e "${GREEN}${repo_name}${NC} (0)${diverge}"
+        echo -e "${GREEN}${repo_name}${NC} (0)${diverge}${branch_summary}"
     else
         local parts=""
         [ "$staged" -gt 0 ] && parts="${staged} staged"
         [ "$modified" -gt 0 ] && parts="${parts:+$parts, }${modified} modified"
-        echo -e "${YELLOW}${repo_name}${NC} (${parts})${diverge}"
+        echo -e "${YELLOW}${repo_name}${NC} (${parts})${diverge}${branch_summary}"
     fi
+}
+
+git_branch_summary() {
+    local abs_path=$1
+    local total=$(git -C "$abs_path" branch | grep -vcE "^\*? *(main|master)$")
+    local merged=$(git -C "$abs_path" branch --merged HEAD | grep -vcE "^\*? *(main|master)$")
+    local now=$(date +%s)
+    local stale=0
+    while IFS= read -r line; do
+        local ts=$(echo "$line" | awk '{print $2}')
+        local age=$(( now - ts ))
+        [ "$age" -gt 7776000 ] && stale=$(( stale + 1 ))  # 90 days
+    done < <(git -C "$abs_path" for-each-ref --format='%(refname:short) %(committerdate:unix)' refs/heads/ \
+        | grep -vE "^(main|master) ")
+    echo "${total} branches: ${merged} merged, ${stale} stale"
 }
 
 git_status() {
