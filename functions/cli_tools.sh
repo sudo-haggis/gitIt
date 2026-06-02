@@ -63,6 +63,41 @@ quick_report() {
     echo -e "${RED}=========================================================================================${NC}"
 }
 
+generate_compact() {
+    if [ ! -f "$repo_list" ]; then
+        echo "No repositories found."
+        exit 0
+    fi
+
+    echo "             Repository summary..."
+    echo -e "${RED}=========================================================================================${NC}"
+    while IFS= read -r repo; do
+        git_status_line "$repo"
+    done < "$repo_list"
+    echo -e "${RED}=========================================================================================${NC}"
+
+    local found_dirty=false
+    while IFS= read -r repo; do
+        local staged=$(git -C "$repo" diff --cached --name-only 2>/dev/null | wc -l)
+        local modified=$(git -C "$repo" diff --name-only 2>/dev/null | wc -l)
+        if [ $((staged + modified)) -gt 0 ]; then
+            if ! $found_dirty; then
+                echo "             Dirty repositories..."
+                echo -e "${RED}=========================================================================================${NC}"
+                found_dirty=true
+            fi
+            echo -e "${GREEN}≡≡≡≡≡≡≡≡≡≡≡≡≡≡${NC}"
+            git_status "$repo"
+        fi
+    done < "$repo_list"
+
+    if $found_dirty; then
+        echo -e "${GREEN}≡≡≡≡≡≡≡≡≡≡≡≡≡≡${NC}"
+        echo -e "${RED}=========================================================================================${NC}"
+    fi
+    exit 0
+}
+
 generate_status(){
     if [ -f "$repo_list" ]; then
         echo "             Generating git status for all repositories..."
