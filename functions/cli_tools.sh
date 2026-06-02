@@ -71,6 +71,12 @@ generate_compact() {
 
     echo "             Repository summary..."
     echo -e "${RED}=========================================================================================${NC}"
+    if [ "${SHOW_BRANCHES}" = "true" ]; then
+        local key_right="${ICON_BRANCH} total  ✓merged  ${ICON_STALE} stale"
+        local term_width=$(tput cols 2>/dev/null || echo 100)
+        local key_pad=$(( term_width - ${#key_right} - 1 ))
+        echo -e "$(printf '%*s' "$key_pad" '')${DIM}${key_right}${NC}"
+    fi
     while IFS= read -r repo; do
         git_status_line "$repo"
     done < "$repo_list"

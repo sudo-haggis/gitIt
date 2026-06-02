@@ -47,10 +47,13 @@ git_status_line() {
     if [ "${SHOW_BRANCHES}" = "true" ]; then
         local br_total br_merged br_stale
         read -r br_total br_merged br_stale <<< "$(git_branch_summary "$abs_path")"
+        local t=$(printf '%3d' "${br_total:-0}")
+        local m=$(printf '%3d' "${br_merged:-0}")
+        local s=$(printf '%3d' "${br_stale:-0}")
         local stale_color="${DIM}"
         [ "${br_stale:-0}" -gt 0 ] && stale_color="${YELLOW}"
-        right_colored="${DIM}${ICON_BRANCH} ${br_total}  ✓${br_merged}  ${stale_color}${ICON_STALE} ${br_stale}${NC}"
-        right_plain="${ICON_BRANCH} ${br_total}  ✓${br_merged}  ${ICON_STALE} ${br_stale}"
+        right_colored="${DIM}${ICON_BRANCH}${t}  ✓${m}  ${stale_color}${ICON_STALE}${s}${NC}"
+        right_plain="${ICON_BRANCH}${t}  ✓${m}  ${ICON_STALE}${s}"
     else
         local display_branch="${branch:0:30}"
         right_colored="${DIM}${display_branch}${NC}"
