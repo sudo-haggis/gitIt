@@ -17,6 +17,7 @@ git_status_line() {
     local modified=$(git -C "$abs_path" diff --name-only | wc -l)
     local branch=$(git -C "$abs_path" branch --show-current)
 
+    # Ahead/behind (plain text, no colour codes — used in length calc too)
     local diverge=""
     if [ -n "$branch" ] && [ "$branch" != "main" ] && [ "$branch" != "master" ]; then
         local base=""
@@ -30,34 +31,58 @@ git_status_line() {
         fi
     fi
 
-    local branch_summary=""
-    if [ "${SHOW_BRANCHES}" = "true" ]; then
-        branch_summary=" [$(git_branch_summary "$abs_path")]"
-    fi
-
+    # Status text and row colour
+    local status_text color
     if [ $((staged + modified)) -eq 0 ]; then
-        echo -e "${GREEN}${repo_name}${NC} (0)${diverge}${branch_summary}"
+        status_text="(0)"; color="${GREEN}"
     else
         local parts=""
         [ "$staged" -gt 0 ] && parts="${staged} staged"
         [ "$modified" -gt 0 ] && parts="${parts:+$parts, }${modified} modified"
-        echo -e "${YELLOW}${repo_name}${NC} (${parts})${diverge}${branch_summary}"
+        status_text="(${parts})"; color="${YELLOW}"
     fi
+
+    # Right-hand side: branch counts (--branches) or current branch name (default)
+    local right_colored right_plain
+    if [ "${SHOW_BRANCHES}" = "true" ]; then
+        local br_total br_merged br_stale
+        read -r br_total br_merged br_stale <<< "$(git_branch_summary "$abs_path")"
+        local stale_color="${DIM}"
+        [ "${br_stale:-0}" -gt 0 ] && stale_color="${YELLOW}"
+        right_colored="${DIM}${ICON_BRANCH} ${br_total}  ✓${br_merged}  ${stale_color}${ICON_STALE} ${br_stale}${NC}"
+        right_plain="${ICON_BRANCH} ${br_total}  ✓${br_merged}  ${ICON_STALE} ${br_stale}"
+    else
+        local display_branch="${branch:0:30}"
+        right_colored="${DIM}${display_branch}${NC}"
+        right_plain="${display_branch}"
+    fi
+
+    # Leader dots to fill the gap
+    local plain_left="${repo_name} ${status_text}${diverge}"
+    local term_width=$(tput cols 2>/dev/null || echo 100)
+    local dots_len=$(( term_width - ${#plain_left} - ${#right_plain} - 3 ))
+    [ "$dots_len" -lt 3 ] && dots_len=3
+    local spaces=$(printf '%*s' "$dots_len" '')
+    local dots="${DIM}${spaces// /·}${NC}"
+
+    echo -e "${color}${repo_name}${NC} ${status_text}${diverge} ${dots} ${right_colored}"
 }
 
 git_branch_summary() {
+    # returns three space-separated numbers: total merged stale
     local abs_path=$1
-    local total=$(git -C "$abs_path" branch | grep -vcE "^\*? *(main|master)$")
-    local merged=$(git -C "$abs_path" branch --merged HEAD | grep -vcE "^\*? *(main|master)$")
+    local total=$(git -C "$abs_path" branch 2>/dev/null | grep -vcE "^\*? *(main|master)$")
+    local merged=$(git -C "$abs_path" branch --merged HEAD 2>/dev/null | grep -vcE "^\*? *(main|master)$")
     local now=$(date +%s)
     local stale=0
     while IFS= read -r line; do
         local ts=$(echo "$line" | awk '{print $2}')
+        [ -z "$ts" ] && continue
         local age=$(( now - ts ))
         [ "$age" -gt 7776000 ] && stale=$(( stale + 1 ))  # 90 days
-    done < <(git -C "$abs_path" for-each-ref --format='%(refname:short) %(committerdate:unix)' refs/heads/ \
+    done < <(git -C "$abs_path" for-each-ref --format='%(refname:short) %(committerdate:unix)' refs/heads/ 2>/dev/null \
         | grep -vE "^(main|master) ")
-    echo "${total} branches: ${merged} merged, ${stale} stale"
+    echo "${total} ${merged} ${stale}"
 }
 
 git_status() {

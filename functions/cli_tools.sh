@@ -116,10 +116,12 @@ generate_status(){
 }
 
 init_colours() {
-    # Colors for output
     RED='\033[0;31m'
     GREEN='\033[0;32m'
     YELLOW='\033[0;33m'
     BLUE='\033[0;34m'
-    NC='\033[0m' # No Colors
+    DIM='\033[2m'
+    NC='\033[0m'
+    ICON_BRANCH=$(printf '')   # nerd font: branch
+    ICON_STALE=$(printf '')    # nerd font: clock
 }
