@@ -102,6 +102,16 @@ gitIt() {
             generate_compact
             exit 0
         ;;
+        *)
+            if [ -d "$1" ]; then
+                SEARCH_DIR="$(cd "$1" && pwd)"
+                __init__
+                generate_compact
+            else
+                echo "Error: Unknown argument '$1'. Use -h for help."
+                exit 1
+            fi
+        ;;
     esac
 }
 
