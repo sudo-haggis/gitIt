@@ -15,109 +15,96 @@ EOF
 echo -e "${NC}"
 
 gitIt() {
-    case "$1" in
-        ""|--default)
-            __init__
-            generate_compact
-        ;;
-        -b|--branches)
-            SHOW_BRANCHES=true
-            __init__
-            generate_compact
-        ;;
-        -v|--verbose)
-            __init__
-            quick_report
-            generate_status
-        ;;
-        -h|--help)
-        echo "                                   gitIt CLI Tool"
-        echo "============================================================================================="
-        echo "This tool provides a quick report of all local repositories found on your system,"
-        echo "as well as the ability to quickly navigate to them."
-        echo "============================================================================================="
-        echo "                               Usage: gitit [flags]"
-        echo
-        echo "Without flags, gitit will display the statuses of all local repositories."
-        echo "You can navigate to a repository by selecting it with the arrow keys and pressing Enter."
-        echo "You can also use the following flags:"
-        echo
-        echo "Flags:"
-        echo "  -h, --help       Show this help message"
-        echo "  -v, --verbose    Full output for all repositories, including clean ones"
-        echo "  -d, --dir <path> Run against a specific directory instead of the current one"
-        echo "  -b, --branches   Show branch count, merged and stale breakdown per repo"
-        echo "  --ignore-repo <REGEX pattern>  Ignore repositories matching the provided pattern"
-        echo "                                 This will add the pattern to the ignore.conf file"
-        echo "                                 in $HOME/.config/gitit"
-        exit 0
-        ;;
-        -s) __init__
-            generate_compact
-            ;;
-        --ignore-repo)
-        #  Check if the ignore pattern is provided
-        if [ -z "$2" ]; then
-            echo "Error: No ignore pattern provided."
-            echo "Usage: gitit --ignore-repo <REGEX pattern>"
-            exit 1
-        fi
-        #  Check if the ignore.conf file exists, if not, create it
-        __init__
-        ignore_pattern="$2"
-        if [ ! -f "$HOME/.config/gitit/ignore.conf" ]; then
-            mkdir -p "$HOME/.config/gitit"
-            touch "$HOME/.config/gitit/ignore.conf"
-        fi
+    local mode="compact"
 
-        #  Append the ignore pattern to the ignore.conf file
-        if [ -f "$repo_list" ]; then
-            grep -E "$ignore_pattern" "$repo_list" >> "$ignore_list"
-            echo ignore pattern "$ignore_pattern" added to "$HOME"/.config/gitit/ignore.conf
-        else
-            echo "No repositories found."
-        fi
-        ;;
-        -l|--list) __init__
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help)
+                mode="help"; shift ;;
+            -v|--verbose)
+                mode="verbose"; shift ;;
+            -l|--list)
+                mode="list"; shift ;;
+            -b|--branches)
+                SHOW_BRANCHES=true; shift ;;
+            -s)
+                shift ;;
+            -d|--dir)
+                if [ -z "$2" ]; then
+                    echo "Error: No directory path provided."
+                    echo "Usage: gitit -d <directory>"
+                    exit 1
+                fi
+                if [ ! -d "$2" ]; then
+                    echo "Error: '$2' is not a valid directory."
+                    exit 1
+                fi
+                SEARCH_DIR="$(cd "$2" && pwd)"; shift 2 ;;
+            -t|--test-dir)
+                TEST=true
+                SEARCH_DIR="tests/fake_file_system"
+                echo "Testing directory set to: $SEARCH_DIR"
+                shift ;;
+            --ignore-repo)
+                if [ -z "$2" ]; then
+                    echo "Error: No ignore pattern provided."
+                    echo "Usage: gitit --ignore-repo <REGEX pattern>"
+                    exit 1
+                fi
+                mode="ignore"
+                IGNORE_PATTERN="$2"; shift 2 ;;
+            *)
+                if [ -d "$1" ]; then
+                    SEARCH_DIR="$(cd "$1" && pwd)"; shift
+                else
+                    echo "Error: Unknown argument '$1'. Use -h for help."
+                    exit 1
+                fi ;;
+        esac
+    done
+
+    case "$mode" in
+        help)
+            echo "                                   gitIt CLI Tool"
+            echo "============================================================================================="
+            echo "This tool provides a quick report of all local repositories found on your system."
+            echo "============================================================================================="
+            echo "                               Usage: gitit [flags]"
+            echo
+            echo "Flags:"
+            echo "  -h, --help            Show this help message"
+            echo "  -v, --verbose         Full output for all repositories, including clean ones"
+            echo "  -b, --branches        Show branch count, merged and stale breakdown per repo"
+            echo "  -d, --dir <path>      Run against a specific directory instead of the current one"
+            echo "  -l, --list            List found repositories without status detail"
+            echo "  -t, --test-dir        Run against the built-in test fixture directory"
+            echo "  --ignore-repo <REGEX> Add a pattern to the ignore list (~/.config/gitit/ignore.conf)"
+            echo
+            echo "Flags can be combined, e.g: gitit -d ~/projects -b -v"
+            exit 0 ;;
+        ignore)
+            __init__
+            if [ ! -f "$HOME/.config/gitit/ignore.conf" ]; then
+                mkdir -p "$HOME/.config/gitit"
+                touch "$HOME/.config/gitit/ignore.conf"
+            fi
             if [ -f "$repo_list" ]; then
-                quick_report
+                grep -E "$IGNORE_PATTERN" "$repo_list" >> "$ignore_list"
+                echo "Ignore pattern '$IGNORE_PATTERN' added to $HOME/.config/gitit/ignore.conf"
             else
                 echo "No repositories found."
-            fi
-            exit 0
-        ;;
-        -d|--dir)
-            if [ -z "$2" ]; then
-                echo "Error: No directory path provided."
-                echo "Usage: gitit -d <directory>"
-                exit 1
-            fi
-            if [ ! -d "$2" ]; then
-                echo "Error: '$2' is not a valid directory."
-                exit 1
-            fi
-            SEARCH_DIR="$(cd "$2" && pwd)"
+            fi ;;
+        list)
             __init__
-            generate_compact
-        ;;
-        -t|--test-dir)
-            TEST=true
-            SEARCH_DIR="tests/fake_file_system"
-            echo "Testing directory set to current directory: $SEARCH_DIR"
+            [ -f "$repo_list" ] && quick_report || echo "No repositories found."
+            exit 0 ;;
+        verbose)
             __init__
-            generate_compact
-            exit 0
-        ;;
-        *)
-            if [ -d "$1" ]; then
-                SEARCH_DIR="$(cd "$1" && pwd)"
-                __init__
-                generate_compact
-            else
-                echo "Error: Unknown argument '$1'. Use -h for help."
-                exit 1
-            fi
-        ;;
+            quick_report
+            generate_status ;;
+        compact)
+            __init__
+            generate_compact ;;
     esac
 }
 
