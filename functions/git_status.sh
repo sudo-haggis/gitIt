@@ -27,7 +27,7 @@ git_status() {
         return 1
     else 
         # Show some details of the repo
-        local repo_name=$(basename $(git -C "$abs_path" rev-parse --show-toplevel))
+        local repo_name=$(basename "$(git -C "$abs_path" rev-parse --show-toplevel)")
         local repo_curr_branch=$(git -C "$abs_path" branch --show-current)
         local staged=$(git -C "$abs_path" diff --cached --name-only | wc -l)
         local modified=$(git -C "$abs_path" diff --name-only | wc -l)
