@@ -69,10 +69,10 @@ generate_status(){
         echo -e "${RED}=========================================================================================${NC}"
             echo -e "${GREEN}≡≡≡≡≡≡≡≡≡≡≡≡≡≡${NC}"
 
-            for repo in $(cat "$repo_list"); do
+            while IFS= read -r repo; do
                 git_status "$repo"
                 echo -e "${GREEN}≡≡≡≡≡≡≡≡≡≡≡≡≡≡${NC}"
-            done
+            done < "$repo_list"
         echo -e "${RED}=========================================================================================${NC}"
     else
         echo "No repositories found."
