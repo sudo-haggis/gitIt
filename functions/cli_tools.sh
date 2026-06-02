@@ -9,7 +9,7 @@ __init__() {
 
     ##  sets the search directory to the home directory
     # or runs only in testing fake_ directory
-    if [ ! $TEST ]; then
+    if [ -z "$SEARCH_DIR" ]; then
         SEARCH_DIR="$(pwd)"
     fi
 

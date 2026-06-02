@@ -40,6 +40,7 @@ gitIt() {
         echo "Flags:"
         echo "  -h, --help       Show this help message"
         echo "  -v, --verbose    Full output for all repositories, including clean ones"
+        echo "  -d, --dir <path> Run against a specific directory instead of the current one"
         echo "  --ignore-repo <REGEX pattern>  Ignore repositories matching the provided pattern"
         echo "                                 This will add the pattern to the ignore.conf file"
         echo "                                 in $HOME/.config/gitit"
@@ -79,6 +80,20 @@ gitIt() {
             fi
             exit 0
         ;;
+        -d|--dir)
+            if [ -z "$2" ]; then
+                echo "Error: No directory path provided."
+                echo "Usage: gitit -d <directory>"
+                exit 1
+            fi
+            if [ ! -d "$2" ]; then
+                echo "Error: '$2' is not a valid directory."
+                exit 1
+            fi
+            SEARCH_DIR="$(cd "$2" && pwd)"
+            __init__
+            generate_compact
+        ;;
         -t|--test-dir)
             TEST=true
             SEARCH_DIR="tests/fake_file_system"
@@ -86,6 +101,16 @@ gitIt() {
             __init__
             generate_compact
             exit 0
+        ;;
+        *)
+            if [ -d "$1" ]; then
+                SEARCH_DIR="$(cd "$1" && pwd)"
+                __init__
+                generate_compact
+            else
+                echo "Error: Unknown argument '$1'. Use -h for help."
+                exit 1
+            fi
         ;;
     esac
 }
