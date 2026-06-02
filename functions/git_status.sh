@@ -1,4 +1,31 @@
 #!/bin/bash
+git_status_line() {
+    local input_path=$1
+    local abs_path=""
+    if [[ "$input_path" = /* ]]; then
+        abs_path="$input_path"
+    else
+        abs_path="$(pwd)/$input_path"
+    fi
+
+    if [ ! -d "$abs_path" ] || ! git -C "$abs_path" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        return 1
+    fi
+
+    local repo_name=$(basename "$(git -C "$abs_path" rev-parse --show-toplevel)")
+    local staged=$(git -C "$abs_path" diff --cached --name-only | wc -l)
+    local modified=$(git -C "$abs_path" diff --name-only | wc -l)
+
+    if [ $((staged + modified)) -eq 0 ]; then
+        echo -e "${GREEN}${repo_name}${NC} (0)"
+    else
+        local parts=""
+        [ "$staged" -gt 0 ] && parts="${staged} staged"
+        [ "$modified" -gt 0 ] && parts="${parts:+$parts, }${modified} modified"
+        echo -e "${YELLOW}${repo_name}${NC} (${parts})"
+    fi
+}
+
 git_status() {
     # param1 is directory path to deal with 
     local status_result=""
