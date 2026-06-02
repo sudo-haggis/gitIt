@@ -46,18 +46,20 @@ git_status_line() {
 }
 
 git_branch_summary() {
+    # returns three space-separated numbers: total merged stale
     local abs_path=$1
-    local total=$(git -C "$abs_path" branch | grep -vcE "^\*? *(main|master)$")
-    local merged=$(git -C "$abs_path" branch --merged HEAD | grep -vcE "^\*? *(main|master)$")
+    local total=$(git -C "$abs_path" branch 2>/dev/null | grep -vcE "^\*? *(main|master)$")
+    local merged=$(git -C "$abs_path" branch --merged HEAD 2>/dev/null | grep -vcE "^\*? *(main|master)$")
     local now=$(date +%s)
     local stale=0
     while IFS= read -r line; do
         local ts=$(echo "$line" | awk '{print $2}')
+        [ -z "$ts" ] && continue
         local age=$(( now - ts ))
         [ "$age" -gt 7776000 ] && stale=$(( stale + 1 ))  # 90 days
-    done < <(git -C "$abs_path" for-each-ref --format='%(refname:short) %(committerdate:unix)' refs/heads/ \
+    done < <(git -C "$abs_path" for-each-ref --format='%(refname:short) %(committerdate:unix)' refs/heads/ 2>/dev/null \
         | grep -vE "^(main|master) ")
-    echo "${total} branches: ${merged} merged, ${stale} stale"
+    echo "${total} ${merged} ${stale}"
 }
 
 git_status() {
