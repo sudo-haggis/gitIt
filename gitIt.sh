@@ -20,6 +20,11 @@ gitIt() {
             __init__
             generate_compact
         ;;
+        --branches)
+            SHOW_BRANCHES=true
+            __init__
+            generate_compact
+        ;;
         -v|--verbose)
             __init__
             quick_report
@@ -41,6 +46,7 @@ gitIt() {
         echo "  -h, --help       Show this help message"
         echo "  -v, --verbose    Full output for all repositories, including clean ones"
         echo "  -d, --dir <path> Run against a specific directory instead of the current one"
+        echo "  --branches       Show branch count, merged and stale breakdown per repo"
         echo "  --ignore-repo <REGEX pattern>  Ignore repositories matching the provided pattern"
         echo "                                 This will add the pattern to the ignore.conf file"
         echo "                                 in $HOME/.config/gitit"
