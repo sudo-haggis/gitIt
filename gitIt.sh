@@ -18,6 +18,10 @@ gitIt() {
     case "$1" in
         ""|--default)
             __init__
+            generate_compact
+        ;;
+        -v|--verbose)
+            __init__
             quick_report
             generate_status
         ;;
@@ -35,13 +39,14 @@ gitIt() {
         echo
         echo "Flags:"
         echo "  -h, --help       Show this help message"
+        echo "  -v, --verbose    Full output for all repositories, including clean ones"
         echo "  --ignore-repo <REGEX pattern>  Ignore repositories matching the provided pattern"
         echo "                                 This will add the pattern to the ignore.conf file"
         echo "                                 in $HOME/.config/gitit"
         exit 0
         ;;
         -s) __init__
-            generate_status
+            generate_compact
             ;;
         --ignore-repo)
         #  Check if the ignore pattern is provided
@@ -79,8 +84,7 @@ gitIt() {
             SEARCH_DIR="tests/fake_file_system"
             echo "Testing directory set to current directory: $SEARCH_DIR"
             __init__
-            quick_report
-            generate_status
+            generate_compact
             exit 0
         ;;
     esac
