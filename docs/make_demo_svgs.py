@@ -31,7 +31,7 @@ DEMOS = [
     ("gitit_help",     ["--help"],      "gitit --help"),
 ]
 
-WIDTH = 100
+WIDTH = 89  # matches the hardcoded separator width in cli_tools.sh
 
 
 def run_gitit(args: list[str]) -> bytes:
