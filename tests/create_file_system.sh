@@ -73,7 +73,7 @@ tree
 ##### Somthing to note, all git commit messages will start with ! sorry its my git setup to maintina concistatn messages, just ignore it!
 ##### i could add a function to remove my global git flows, but also meh. lets get the ball rolling
 
-# STEP 1 : lets make a clean perfect repo to tests
+# STEP 1 : lets make a clean perfect repo with merged feature branches
 repo_path="$fake_dir_abs_path/project_alpha/repo_clean"
 echo "Moving to $repo_path"
 cd $repo_path
@@ -94,10 +94,26 @@ echo "console.log('App v2.0');" >> app.js
 git add app.js
 git commit -q -m "! THIS APP IS MENTAL"
 
-git status --short
-echo "all staged repo setup"
+# Add feature/user-auth branch and merge it back (merged branch)
+git checkout -q -b feature/user-auth
+echo "// user auth module" > auth.js
+git add auth.js
+git commit -q -m "! Add user auth module"
+git checkout -q main
+git merge -q --no-ff feature/user-auth -m "! Merge feature/user-auth"
 
-# STEP 2 : lets make a repo with some uncommited files
+# Add feature/dark-mode branch and merge it back (another merged branch)
+git checkout -q -b feature/dark-mode
+echo "body { background: #1a1a1a; }" > theme.css
+git add theme.css
+git commit -q -m "! Add dark mode theme"
+git checkout -q main
+git merge -q --no-ff feature/dark-mode -m "! Merge feature/dark-mode"
+
+git status --short
+echo "repo_clean setup complete: 2 merged branches"
+
+# STEP 2 : lets make a repo with some uncommited files and mixed branch health
 repo_path="$fake_dir_abs_path/project_beta/repo_staged"
 echo "Moving to $repo_path"
 cd $repo_path
@@ -117,6 +133,22 @@ echo "# ITS A TRAP... but who reads these anyway" > README.md
 git add README.md
 echo "repo with staging problem setup"
 
+# Add an active WIP branch (not merged, recent commits)
+git checkout -q -b wip/big-refactor
+echo "# Refactor in progress" > REFACTOR.md
+git add REFACTOR.md
+git commit -q -m "! Start big refactor"
+git checkout -q main
+
+# Add a stale branch (last commit >90 days ago — use a backdated commit)
+git checkout -q -b hotfix/old-login-crash
+STALE_DATE="2025-11-01T12:00:00"
+GIT_AUTHOR_DATE="$STALE_DATE" GIT_COMMITTER_DATE="$STALE_DATE" \
+    git commit -q --allow-empty -m "! Attempted login fix (abandoned)"
+git checkout -q main
+
+echo "repo_staged setup complete: 1 active WIP branch, 1 stale branch"
+
 # STEP 3 : lets also have ourself a repo thats half way through a rebase!
 #
 repo_path="$fake_dir_abs_path/project_gamma/repo_rebase"
@@ -127,9 +159,9 @@ init_repo
 
 echo "// Main feature" > feature.txt
 echo "#include <stdio.h>
-int main() { 
-    printf(\"Hello\"); 
-    return 0; 
+int main() {
+    printf(\"Hello\");
+    return 0;
 }" > main.c
 git add .
 git commit -q -m "! Initial C program"
@@ -138,20 +170,20 @@ git commit -q -m "! Initial C program"
 git checkout -q -b feature-branch
 echo "// Feature addition" >> feature.txt
 echo "#include <stdio.h>
-int main() { 
-    printf(\"Hello World\"); 
-    return 0; 
+int main() {
+    printf(\"Hello World\");
+    return 0;
 }" > main.c
 git add .
 git commit -q -m "! Add feature"
 
 # Switch back to main and create conflicting commit
 git checkout -q main
-echo "// Main update" >> feature.txt  
+echo "// Main update" >> feature.txt
 echo "#include <stdio.h>
-int main() { 
-    printf(\"Hello Main\"); 
-    return 0; 
+int main() {
+    printf(\"Hello Main\");
+    return 0;
 }" > main.c
 git add .
 git commit -q -m "! Main update"
