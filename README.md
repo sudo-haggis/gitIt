@@ -1,27 +1,84 @@
 <img width="1638" height="230" alt="image" src="https://github.com/user-attachments/assets/5d2d023e-3dc6-435c-acc1-ebae6ff100dd" />
 
-#  gitIt
+# gitIt
 *ha, get it?*
-#### Installation
+
+**gitIt** searches a directory for git repositories and gives you a fast, colour-coded summary of their state. Default target is your current directory; use `-d` to point it anywhere.
+
+## Installation
+
+```bash
+git clone https://github.com/sudo-haggis/gitIt ~/gitIt && cd ~/gitIt && chmod +x installer.sh && ./installer.sh
 ```
-git clone https://github.com/sudo-haggis/Bootdev_hackathon_GitStatus ~/gitIt && cd ~/gitIt && chmod +x installer.sh && ./installer.sh
+
+## Usage
+
+```
+gitit [flags]
 ```
 
-**gitIt** searches your `$HOME` directory for any git repositories and returns the status of each active repository. This is the default behavoir of gitIt, simply run `gitIt` and watch it go to work!
+| Flag | Alias | Description |
+|------|-------|-------------|
+| `--help` | `-h` | Show this help message |
+| `--verbose` | `-v` | Full output for all repos, including clean ones |
+| `--branches` | `-b` | Show branch count, merged and stale breakdown per repo |
+| `--dir <path>` | `-d` | Run against a specific directory instead of `$HOME` |
+| `--list` | `-l` | List found repositories without status detail |
+| `--ignore-repo <REGEX>` | | Add a pattern to the ignore list |
 
-**gitIt** can also return a count of all non-ignored repositories and display the paths of each repository in a numbered list. Run `gitIt -l|--list` for this behavior!
+Flags can be combined freely — for example:
 
-## Ignoring repos:
-**gitIt** can use REGEX to find the paths of repos you would like to exclude from gitIt's status reports and repository lists. Run `gitIt --ignore-repo <IGNORE-PATTERN>` to add to your `$IGNORE_LIST`. Your `$IGNORE_LIST` is stored and can be viewed/edited at `~/.config/gitIt/ignore.conf`. If manually adding to it, add the full path of a repo you want to ignore for best results!
+```bash
+gitit -d ~/projects -b -v
+```
 
-#  Future of gitIt
-We intend to keep adding to this project, adding new useful features and improving existing features!
+---
 
-## Screenshots
-`gitIt`
+## Default view
 
-<img width="995" height="486" alt="image" src="https://github.com/user-attachments/assets/cf8c63d8-1ba9-439c-a518-59a7bb685c80" />
+A compact, colour-coded summary of every repo that has uncommitted work. Clean repos are shown but dimmed; dirty repos get a detailed breakdown below the summary.
 
-`gitIt -l`
+<img src="docs/img/gitit_default.svg" alt="gitit default view" />
 
-<img width="1007" height="603" alt="image" src="https://github.com/user-attachments/assets/fcd6cda3-646c-4527-bf39-0baaea0a4c9e" />
+---
+
+## Branch view  `-b` / `--branches`
+
+Each repo shows a branch health summary instead of the current branch name:
+
+```
+ <total non-main branches>   ✓ <merged into HEAD>    <stale — no commits in 90 days>
+```
+
+Stale counts are highlighted in yellow when non-zero so branch debt is impossible to miss.
+
+<img src="docs/img/gitit_branches.svg" alt="gitit --branches view" />
+
+---
+
+## List view  `-l` / `--list`
+
+Prints a numbered list of every repo found, with a total count. Useful for a quick inventory or for scripting.
+
+<img src="docs/img/gitit_list.svg" alt="gitit --list view" />
+
+---
+
+## Verbose view  `-v` / `--verbose`
+
+Runs a full `git status` on every repo — not just dirty ones. Useful for a complete picture when you haven't touched a project in a while.
+
+<img src="docs/img/gitit_verbose.svg" alt="gitit --verbose view" />
+
+---
+
+## Ignoring repos
+
+Use a REGEX pattern to exclude repos from all reports:
+
+```bash
+gitit --ignore-repo <REGEX>
+```
+
+Patterns are stored at `~/.config/gitit/ignore.conf`. You can also edit that file directly — add the full path of any repo you want excluded.
+
